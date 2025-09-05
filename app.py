@@ -11,7 +11,8 @@ if uploaded_file is not None:
     data = bytes_data.decode("utf-8")
     # print(data)
     df = preprocessor.preprocess(data)
-    st.dataframe(df)
+
+
     # fetch unique users
     user_list = df['user'].unique().tolist()
     user_list.sort()
@@ -22,11 +23,14 @@ if uploaded_file is not None:
     selected_user =  st.sidebar.selectbox("Show analysis wrt" , user_list)
 
     if st.sidebar.button("Show Analysis"):
-
+        #stats area
         num_messages ,w_count,media, links = helper.fetch_stat(selected_user, user,df)
         print(num_messages)
-
+        st.title("Top Statistics")
         col1, col2, col3, col4, col5 = st.columns(5)
+        st.title("Total Messages")
+
+
 
         with col1:
             st.header("Total Messages")
@@ -59,12 +63,41 @@ if uploaded_file is not None:
             st.dataframe(new_df)
 
     # Wordcloud
+    st.title("Word_cloud")
     df_wc = helper.create_wordcloud(selected_user, df)
     fig,ax = plt.subplots()
     ax.imshow(df_wc)
     plt.imshow(df_wc)
     st.pyplot(fig)
 
+    # most_common words
+    most_common_df = helper.most_common_words(selected_user, df)
+
+    st.dataframe(most_common_df)
+
+    fig,ax = plt.subplots()
+
+    ax.barh(most_common_df[0],most_common_df[1])
+    plt.xticks(rotation = 'vertical')
+    st.title('Most Common Words')
+    st.pyplot(fig)
+
+    # emoji analysis
+
+    emoji_df = helper.emoji_helper(selected_user,df)
+    st.dataframe(emoji_df)
+
+    st.title('Emoji Analysis')
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.dataframe(emoji_df)
+
+    with col2:
+        fig,ax = plt.subplots()
+        ax.pie(emoji_df["count"].head(),labels = emoji_df['emoji'].head(),autopct ="%0.2f")
+        st.pyplot(fig)
 
 
 
