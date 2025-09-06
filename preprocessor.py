@@ -20,12 +20,25 @@ def preprocess(data):
     df['message_time'] = df['message_time'].str.replace('\u202f', ' ', regex=False)
 
     df['message_time'] = pd.to_datetime(df['message_time'], format="%I:%M %p", errors='coerce')
+    df['only_date'] = df['message_date'].dt.date
     df['year'] = df['message_date'].dt.year
+    df['month_num'] = df['message_date'].dt.month
     df['month'] = df['message_date'].dt.month_name()
+    df['day_name']  = df['message_date'].dt.day_name()
     df['day'] = df['message_date'].dt.day
     df['hour'] = df['message_time'].dt.hour
     df['minute'] = df['message_time'].dt.minute
 
+    period = []
+    for hour in df[['day_name', 'hour']]['hour']:
+        if hour == 23:
+            period.append(str(hour) + "_" + str('00'))
+        elif hour == 0:
+            period.append(str(hour) + "_" + str(hour + 1))
+        else:
+            period.append(str(hour) + "_" + str(hour + 1))
+
+    df['period'] = period
     df = df.drop(['user_message', 'message_date','message_time'], axis=1)
-    df = df[['user', 'message',  'day', 'month', 'year', 'hour', 'minute']]
+    df = df[['user', 'message',  'day', 'month', 'year', 'hour', 'minute', 'month_num', 'only_date','day_name','period']]
     return df

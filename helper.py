@@ -34,7 +34,7 @@ def fetch_stat(selected_user,user_list,df):
 def most_busy_users(df):
     x = df['user'].value_counts().head()
     df = round((df['user'].value_counts() / df.shape[0]) * 100, 2).reset_index().rename(
-        columns={'index': 'name', 'user': 'percent'})
+        columns={'index': 'name', 'user': 'user'})
 
     return x,df
 
@@ -92,6 +92,47 @@ def emoji_helper(selected_user,df):
     emojidf = pd.DataFrame(emojis.items(), columns=['emoji', 'count'])
     return emojidf.sort_values(by='count', ascending=False)
 
+def monthly_timeline(selected_user,df):
+    # print(df)
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+    timeline = df.groupby(['year', 'month_num' , 'month']).count()['message'].reset_index()
+
+    time = []
+    for i in range(timeline.shape[0]):
+        time.append(timeline['month'][i]+ "-" + str(timeline['year'][i]))
+
+    timeline['time'] = time
+
+    return timeline
+
+def daily_timeline(selected_user,df):
+
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    D_timeline = df.groupby('only_date').count()['message'].reset_index()
+    return D_timeline
+
+def week_activity_map(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+    return df['day_name'].value_counts()
+
+
+def month_activity_map(selected_user,df):
+
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    return df['month'].value_counts()
+
+def activity_heatmap(selected_user,df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    user_heatmap= df.pivot_table(index='day_name',columns='period', values='message', aggfunc='count').fillna(0)
+    return user_heatmap
 
 
 

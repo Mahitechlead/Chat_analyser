@@ -2,17 +2,18 @@ import streamlit as st
 import helper
 import preprocessor
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 st.sidebar.title("Whatsapp Chat Analyzer")
 
-uploaded_file = st.sidebar.file_uploader("Choosse a file")
+uploaded_file = st.sidebar.file_uploader("Choose a file")
 if uploaded_file is not None:
     bytes_data = uploaded_file.getvalue()
     data = bytes_data.decode("utf-8")
     # print(data)
     df = preprocessor.preprocess(data)
 
-
+    print(df)
     # fetch unique users
     user_list = df['user'].unique().tolist()
     user_list.sort()
@@ -44,6 +45,52 @@ if uploaded_file is not None:
         with col4:
             st.header("Links Shared")
             st.title(links)
+
+    # MonthlyTimeline
+    st.title("Monthly Timeline")
+
+    timeline = helper.monthly_timeline(selected_user, df)
+    fig, ax = plt.subplots()
+    ax.plot(timeline['time'],timeline['message'],color= 'green')
+    plt.xticks(rotation='vertical')
+    st.pyplot(fig)
+
+
+    #Daily timeline
+    st.title("Daily Timeline")
+    daily_timeline= helper.daily_timeline(selected_user, df)
+    fig, ax = plt.subplots()
+    ax.plot(daily_timeline['only_date'], daily_timeline['message'], color='black')
+    plt.xticks(rotation= 'vertical')
+    st.pyplot(fig)
+
+
+    #activity map
+    st.title('Activity Map')
+    col1,col2 = st.columns(2)
+
+    with col1:
+        st.header("Most busy day")
+        busy_day = helper.week_activity_map(selected_user, df)
+        fig,ax = plt.subplots()
+        ax.bar(busy_day.index, busy_day.values, color='pink')
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
+
+    with col2:
+        st.header("Most busy month")
+        busy_month = helper.month_activity_map(selected_user, df)
+        fig,ax = plt.subplots()
+        ax.bar(busy_month.index, busy_month.values, color='green')
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
+
+    st.title("Weekly activity map")
+    user_heatmap = helper.activity_heatmap(selected_user, df)
+    fig,ax = plt.subplots()
+    ax = sns.heatmap(user_heatmap)
+    st.pyplot(fig)
+
     # finding the busiest user in the group
 
     if selected_user == 'Overall':
@@ -56,7 +103,7 @@ if uploaded_file is not None:
         col1,col2 = st.columns(2)
 
         with col1:
-            ax.bar(x.index,x.values, color = 'red')
+            ax.bar(x.index,x.values, color = 'orange')
             plt.xticks(rotation = 'vertical')
             st.pyplot(fig)
         with col2:
@@ -85,7 +132,6 @@ if uploaded_file is not None:
     # emoji analysis
 
     emoji_df = helper.emoji_helper(selected_user,df)
-    st.dataframe(emoji_df)
 
     st.title('Emoji Analysis')
 
@@ -98,6 +144,8 @@ if uploaded_file is not None:
         fig,ax = plt.subplots()
         ax.pie(emoji_df["count"].head(),labels = emoji_df['emoji'].head(),autopct ="%0.2f")
         st.pyplot(fig)
+
+
 
 
 
